@@ -15,6 +15,9 @@ query: `
             }
           }
     }
+    pageBy(uri: "about") {
+        content
+        }
     generalSettings {
      title
      description
@@ -29,7 +32,9 @@ const UIMethods = (function UIMethodsIIFE() {
     // Cache DOM
     const portfolio_main = document.querySelector('.portfolio_main');
     const item_main = document.querySelector('.item_main');
+    const item_image = document.querySelector('.item_image');
     const hero_wrapper = document.querySelector('.hero_wrapper')
+    const about_main = document.querySelector('.about_main')
 
     const toggle = (className) => {
         const element = document.querySelector('.' + className);
@@ -43,8 +48,8 @@ const UIMethods = (function UIMethodsIIFE() {
         const renderImage = (src) => {
             const img = document.createElement('img');
             img.src = src;
-            img.classList.add('item_image');
-            item_main.appendChild(img)
+            item_image.appendChild(img);
+            item_main.appendChild(item_image);
         }
 
         const renderText = (type, text) => {
@@ -123,6 +128,14 @@ const UIMethods = (function UIMethodsIIFE() {
         hero_wrapper.prepend(div);
     }
 
+    const renderAbout = (data) => {
+        const aboutHTML = data["data"]["pageBy"]["content"];
+        console.log(aboutHTML);
+        const divContent = document.createElement('div');
+        divContent.innerHTML = aboutHTML;
+        about_main.appendChild(divContent);
+    }
+
     const renderFooter = (data) => {
     }
 
@@ -131,6 +144,7 @@ const UIMethods = (function UIMethodsIIFE() {
         renderGrid: renderGrid,
         renderTitle: renderTitle,
         renderItem: renderItem,
+        renderAbout: renderAbout,
         renderFooter: renderFooter,
     }
 
@@ -148,9 +162,11 @@ const init = async () => {
           body: body
         })
     const data = await resp.json();
+    console.log(data)
 
     UIMethods.renderGrid(data);
     UIMethods.renderTitle(data);
+    UIMethods.renderAbout(data);
     UIMethods.renderFooter(data);
 }
 
@@ -172,6 +188,7 @@ const showItem = async (e) => {
     let body = JSON.stringify(content);
 
     UIMethods.toggle('portfolio')
+    UIMethods.toggle('about')
     UIMethods.toggle('hero_section')
     UIMethods.toggle('item')
 
@@ -187,6 +204,8 @@ const showItem = async (e) => {
     
     UIMethods.renderItem(data);
 }
+
+
 
 
 init();
