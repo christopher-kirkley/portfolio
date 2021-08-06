@@ -37,13 +37,54 @@ const UIMethods = (function UIMethodsIIFE() {
     }
 
     const renderItem = (data) => {
-        const div = document.createElement('div');
-        div.innerText ='sup'
+        const title = data["data"]["post"]["title"];
+        const content = data["data"]["post"]["content"];
 
-        //do stuff
+        const renderImage = (src) => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.classList.add('item_image');
+            item_main.appendChild(img)
+        }
 
+        const renderText = (type, text) => {
+            const element = document.createElement(type);
+            element.innerText = text;
+            element.classList.add('item_text');
+            item_main.appendChild(element);
+        }
 
-        item_main.appendChild(div);
+        const parseContent = (raw) => {
+
+            var doc = document.createElement("html")
+            doc.innerHTML = raw;
+            var img = doc.getElementsByTagName("img");
+            const src = img[0].src
+            renderImage(src)
+       }
+
+        const removeImages = (content) => {
+            console.log(content);
+
+            // turn into an array
+            var HTMLNodes = content.split('\n');
+            var arr = [...HTMLNodes];
+            // cut out if figure
+            var newArr = arr.map((html) => html.includes('<figure') ? arr.pop(html) : html);
+            // convert array into string
+            console.log(newArr.join('\n'));
+            return newArr.join('\n');
+        }
+
+        parseContent(content);
+
+        const contentFixed = removeImages(content);
+
+        const divContent = document.createElement('div');
+        divContent.innerHTML = contentFixed;
+        divContent.classList.add('item_text');
+        item_main.appendChild(divContent);
+
     }
 
     const renderGrid = (data) => {
@@ -82,11 +123,15 @@ const UIMethods = (function UIMethodsIIFE() {
         hero_wrapper.prepend(div);
     }
 
+    const renderFooter = (data) => {
+    }
+
     return {
         toggle: toggle,
         renderGrid: renderGrid,
         renderTitle: renderTitle,
-        renderItem: renderItem
+        renderItem: renderItem,
+        renderFooter: renderFooter,
     }
 
 })();
@@ -104,9 +149,9 @@ const init = async () => {
         })
     const data = await resp.json();
 
-    console.log(data);
     UIMethods.renderGrid(data);
     UIMethods.renderTitle(data);
+    UIMethods.renderFooter(data);
 }
 
 
@@ -127,6 +172,7 @@ const showItem = async (e) => {
     let body = JSON.stringify(content);
 
     UIMethods.toggle('portfolio')
+    UIMethods.toggle('hero_section')
     UIMethods.toggle('item')
 
     const resp = await fetch(BASE_URL, {

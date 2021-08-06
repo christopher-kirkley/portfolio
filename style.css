@@ -54,9 +54,31 @@
 }
 
 .item {
-	color: green;
+	padding: 60px;
+}
+	
+
+.item_main {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+.item_image {
+}
+
+.item_text {
 }
 
 .hidden {
 	display: none;
 }
+
+.item_text h1 {
+	padding: 5px;
+}
+
+.item_text p {
+	padding: 5px;
+}
+
