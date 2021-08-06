@@ -54,5 +54,9 @@
 }
 
 .item {
+	color: green;
+}
+
+.hidden {
 	display: none;
 }

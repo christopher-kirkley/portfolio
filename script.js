@@ -1,3 +1,5 @@
+BASE_URL = "http://localhost:8000?graphql";
+
 const content = {
 query: `
   {
@@ -20,39 +22,96 @@ query: `
   }
 `};
 
-const toggle = (className) => {
-    const element = document.querySelector('.' + className);
-    if (element.style.display === "none") {
-        element.style.display = "block";
-    } else {
-        element.style.display = "none";
+
+
+const UIMethods = (function UIMethodsIIFE() {
+
+    // Cache DOM
+    const portfolio_main = document.querySelector('.portfolio_main');
+    const item_main = document.querySelector('.item_main');
+    const hero_wrapper = document.querySelector('.hero_wrapper')
+
+    const toggle = (className) => {
+        const element = document.querySelector('.' + className);
+        element.classList.toggle("hidden")
     }
-}
 
-const renderItem = (data) => {
-    console.log('hi')
+    const renderItem = (data) => {
+        const div = document.createElement('div');
+        div.innerText ='sup'
+
+        //do stuff
 
 
-}
+        item_main.appendChild(div);
+    }
+
+    const renderGrid = (data) => {
+        const posts = data["data"]["posts"]["nodes"];
+        posts.map((post) => {
+            const div = document.createElement('div');
+            div.classList.add('portfolio_item');
+            div.id = post["postId"];
+
+            if (post["featuredImage"]) {
+                const img_url = post["featuredImage"]["node"]["mediaItemUrl"]; 
+                const img = document.createElement('img');
+                img.src = img_url
+                img.classList.add('portfolio_image')
+                div.appendChild(img);
+            }
+            const p = document.createElement('p');
+            p.innerText = post.title;
+            div.append(p)
+            div.onclick = showItem;
+
+            portfolio_main.appendChild(div);
+        })
+    }
+
+    const renderTitle = (data) => {
+        const generalSettings = data["data"]["generalSettings"];
+        const div = document.createElement('div');
+        div.classList.add('column_left');
+        const h1 = document.createElement('h1');
+        h1.innerText = generalSettings.title;
+        const p = document.createElement('p');
+        p.innerText = generalSettings.description;
+        div.appendChild(h1);
+        div.appendChild(p);
+        hero_wrapper.prepend(div);
+    }
+
+    return {
+        toggle: toggle,
+        renderGrid: renderGrid,
+        renderTitle: renderTitle,
+        renderItem: renderItem
+    }
+
+})();
+
 
 let body = JSON.stringify(content);
 
-fetch('http://localhost:8000?graphql=true', {
-  method: 'post',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: body
-})
-  .then(response => response.json())
-  .then(data => {
-      console.log(data);
-      renderGrid(data);
-      renderTitle(data);
-  });
+const init = async () => {
+    const resp = await fetch(BASE_URL, {
+        method: 'post',
+        headers: {
+        'Content-Type': 'application/json'
+          },
+          body: body
+        })
+    const data = await resp.json();
+
+    console.log(data);
+    UIMethods.renderGrid(data);
+    UIMethods.renderTitle(data);
+}
 
 
-const showItem = (e) => {
+
+const showItem = async (e) => {
     const id = e.currentTarget.id;
     
     const content = {
@@ -67,59 +126,21 @@ const showItem = (e) => {
 
     let body = JSON.stringify(content);
 
-    toggle('portfolio')
-    toggle('item')
+    UIMethods.toggle('portfolio')
+    UIMethods.toggle('item')
 
-    fetch('http://localhost:8000?graphql=true', {
-      method: 'post',
-      headers: {
+    const resp = await fetch(BASE_URL, {
+        method: 'post',
+        headers: {
         'Content-Type': 'application/json'
-      },
-      body: body
-    })
-      .then(response => response.json())
-      .then(data => {
-          renderItem(data);
-    })
+        },
+        body: body
+    });
 
-}
-
-const renderGrid = (data) => {
-    const posts = data["data"]["posts"]["nodes"];
-    const portfolio_main = document.querySelector('.portfolio_main');
-    posts.map((post) => {
-        const div = document.createElement('div');
-        div.classList.add('portfolio_item');
-        div.id = post["postId"];
-
-        if (post["featuredImage"]) {
-            const img_url = post["featuredImage"]["node"]["mediaItemUrl"]; 
-            const img = document.createElement('img');
-            img.src = img_url
-            img.classList.add('portfolio_image')
-            div.appendChild(img);
-        }
-        const p = document.createElement('p');
-        p.innerText = post.title;
-        div.append(p)
-        div.onclick = showItem;
-
-        portfolio_main.appendChild(div);
-    })
-}
-
-const renderTitle = (data) => {
-    const hero_wrapper = document.querySelector('.hero_wrapper')
-    const generalSettings = data["data"]["generalSettings"];
-    const div = document.createElement('div');
-    div.classList.add('column_left');
-    const h1 = document.createElement('h1');
-    h1.innerText = generalSettings.title;
-    const p = document.createElement('p');
-    p.innerText = generalSettings.description;
-    div.appendChild(h1);
-    div.appendChild(p);
-   hero_wrapper.prepend(div);
+    const data = await resp.json();
+    
+    UIMethods.renderItem(data);
 }
 
 
+init();
