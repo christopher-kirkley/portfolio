@@ -30,15 +30,58 @@ query: `
 const UIMethods = (function UIMethodsIIFE() {
 
     // Cache DOM
+    const header_container = document.querySelector('.header_container')
+    const about_left = document.querySelector('.about_left')
     const portfolio_main = document.querySelector('.portfolio_main');
     const item_main = document.querySelector('.item_main');
     const item_image = document.querySelector('.item_image');
-    const hero_wrapper = document.querySelector('.hero_wrapper')
-    const about_main = document.querySelector('.about_main')
 
     const toggle = (className) => {
         const element = document.querySelector('.' + className);
         element.classList.toggle("hidden")
+    }
+
+    const renderHeader = (data) => {
+        const generalSettings = data["data"]["generalSettings"];
+        const h1 = document.createElement('h1');
+        h1.innerText = generalSettings.title;
+        h1.classList.add('header_item')
+        h1.classList.add('header_title')
+        const p = document.createElement('p');
+        p.innerText = generalSettings.description;
+        p.classList.add('header_item')
+        header_container.appendChild(h1);
+        header_container.appendChild(p);
+    }
+
+    const renderAbout = (data) => {
+        const aboutHTML = data["data"]["pageBy"]["content"];
+        const divContent = document.createElement('div');
+        divContent.innerHTML = aboutHTML;
+        about_left.appendChild(divContent);
+    }
+
+    const renderPortfolio = (data) => {
+        const posts = data["data"]["posts"]["nodes"];
+        posts.map((post) => {
+            const div = document.createElement('div');
+            div.classList.add('portfolio_item');
+            div.id = post["postId"];
+
+            if (post["featuredImage"]) {
+                const img_url = post["featuredImage"]["node"]["mediaItemUrl"]; 
+                const img = document.createElement('img');
+                img.src = img_url
+                img.classList.add('portfolio_image')
+                div.appendChild(img);
+            }
+            const p = document.createElement('p');
+            p.innerText = post.title;
+            div.append(p)
+            div.onclick = showItem;
+
+            portfolio_main.appendChild(div);
+        })
     }
 
     const renderItem = (data) => {
@@ -92,57 +135,20 @@ const UIMethods = (function UIMethodsIIFE() {
 
     }
 
-    const renderGrid = (data) => {
-        const posts = data["data"]["posts"]["nodes"];
-        posts.map((post) => {
-            const div = document.createElement('div');
-            div.classList.add('portfolio_item');
-            div.id = post["postId"];
 
-            if (post["featuredImage"]) {
-                const img_url = post["featuredImage"]["node"]["mediaItemUrl"]; 
-                const img = document.createElement('img');
-                img.src = img_url
-                img.classList.add('portfolio_image')
-                div.appendChild(img);
-            }
-            const p = document.createElement('p');
-            p.innerText = post.title;
-            div.append(p)
-            div.onclick = showItem;
 
-            portfolio_main.appendChild(div);
-        })
-    }
-
-    const renderTitle = (data) => {
-        const generalSettings = data["data"]["generalSettings"];
-        const div = document.createElement('div');
-        div.classList.add('column_left');
-        const h1 = document.createElement('h1');
-        h1.innerText = generalSettings.title;
-        const p = document.createElement('p');
-        p.innerText = generalSettings.description;
-        div.appendChild(h1);
-        div.appendChild(p);
-        hero_wrapper.prepend(div);
-    }
-
-    const renderAbout = (data) => {
-        const aboutHTML = data["data"]["pageBy"]["content"];
+    const renderFooter = (data) => {
+        const footerHTML = data["data"]["pageBy"]["content"];
         console.log(aboutHTML);
         const divContent = document.createElement('div');
         divContent.innerHTML = aboutHTML;
         about_main.appendChild(divContent);
     }
 
-    const renderFooter = (data) => {
-    }
-
     return {
         toggle: toggle,
-        renderGrid: renderGrid,
-        renderTitle: renderTitle,
+        renderPortfolio: renderPortfolio,
+        renderHeader: renderHeader,
         renderItem: renderItem,
         renderAbout: renderAbout,
         renderFooter: renderFooter,
@@ -164,10 +170,10 @@ const init = async () => {
     const data = await resp.json();
     console.log(data)
 
-    UIMethods.renderGrid(data);
-    UIMethods.renderTitle(data);
+    UIMethods.renderHeader(data);
     UIMethods.renderAbout(data);
-    UIMethods.renderFooter(data);
+    UIMethods.renderPortfolio(data);
+    // UIMethods.renderFooter(data);
 }
 
 
@@ -189,7 +195,7 @@ const showItem = async (e) => {
 
     UIMethods.toggle('portfolio')
     UIMethods.toggle('about')
-    UIMethods.toggle('hero_section')
+    UIMethods.toggle('header')
     UIMethods.toggle('item')
 
     const resp = await fetch(BASE_URL, {
